@@ -20,12 +20,19 @@ export default function OTPVerificationPage() {
   const router = useRouter();
 
   // Get the phone number from search params and trim extra spaces
-  let phoneNumber = (searchParams.get("phone") || "91 0000 0000 00").trim();
+ const [phoneNumber, setPhoneNumber] = React.useState("+91 0000 0000 00");
+
+React.useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  let phone = params.get("phone")?.trim();
+  if (phone && !phone.startsWith("+")) {
+    phone = `+${phone}`;
+  }
+  setPhoneNumber(phone || "+91 0000 0000 00");
+}, []);
 
   // If it doesn't start with "+", prepend it (this won't add an extra space)
-  if (!phoneNumber.startsWith("+")) {
-    phoneNumber = `+${phoneNumber}`;
-  }
+  
 
   // Using the OTP verification mutation hook
   const [otpVerify, { isLoading, isError, error }] =

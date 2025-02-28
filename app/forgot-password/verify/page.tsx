@@ -11,8 +11,13 @@ import { cn } from "@/lib/utils";
 
 export default function EmailVerificationPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email") || "example@gmail.com";
+const [email, setEmail] = React.useState("example@gmail.com");
+const searchParams = useSearchParams();
+
+React.useEffect(() => {
+  const emailParam = searchParams.get("email");
+  if (emailParam) setEmail(emailParam);
+}, [searchParams]);
 
   const [code, setCode] = React.useState<string[]>(new Array(4).fill(""));
   const [activeInput, setActiveInput] = React.useState(0);
