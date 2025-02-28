@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Swiper styles */
+.swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.swiper-slide {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Custom pagination */
+.custom-pagination {
+  display: flex;
+  gap: 8px;
+}
+
+.custom-pagination .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0 !important;
+}
+
+.custom-pagination .swiper-pagination-bullet-active {
+  background: #1032b9;
+  transform: scale(1.2);
+}
+
+/* Navigation buttons are always visible */
+.custom-prev,
+.custom-next {
+  opacity: 1; /* Always visible */
+}
+
