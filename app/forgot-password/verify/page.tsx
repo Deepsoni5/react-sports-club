@@ -1,8 +1,9 @@
 "use client";
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // Disable prerendering
+
 import * as React from "react";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -11,22 +12,23 @@ import { cn } from "@/lib/utils";
 
 export default function EmailVerificationPage() {
   const router = useRouter();
-const [email, setEmail] = React.useState("example@gmail.com");
-const searchParams = useSearchParams();
-
-React.useEffect(() => {
-  const emailParam = searchParams.get("email");
-  if (emailParam) setEmail(emailParam);
-}, [searchParams]);
-
+  const [email, setEmail] = React.useState("example@gmail.com");
+  const [isLoading, setIsLoading] = React.useState(true); // Add loading state
   const [code, setCode] = React.useState<string[]>(new Array(4).fill(""));
   const [activeInput, setActiveInput] = React.useState(0);
   const [resendTimer, setResendTimer] = React.useState(30);
   const [isResendDisabled, setIsResendDisabled] = React.useState(true);
   const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
+  // Move `useSearchParams` logic inside `useEffect`
   React.useEffect(() => {
-    // Start resend timer
+    const searchParams = new URLSearchParams(window.location.search);
+    const emailParam = searchParams.get("email");
+    if (emailParam) setEmail(emailParam);
+    setIsLoading(false); // Set loading to false after email is set
+  }, []);
+
+  React.useEffect(() => {
     if (resendTimer > 0 && isResendDisabled) {
       const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
       return () => clearTimeout(timer);
@@ -40,18 +42,13 @@ React.useEffect(() => {
     newCode[index] = value;
     setCode(newCode);
 
-    // Move to next input if value is entered
     if (value && index < 3) {
       setActiveInput(index + 1);
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    // Move to previous input on backspace if current input is empty
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       setActiveInput(index - 1);
       inputRefs.current[index - 1]?.focus();
@@ -69,7 +66,6 @@ React.useEffect(() => {
     });
     setCode(newCode);
 
-    // Focus last filled input or first empty input
     const focusIndex = Math.min(pastedArray.length, 3);
     setActiveInput(focusIndex);
     inputRefs.current[focusIndex]?.focus();
@@ -77,16 +73,11 @@ React.useEffect(() => {
 
   const handleResend = () => {
     if (!isResendDisabled) {
-      // Reset code fields
       setCode(new Array(4).fill(""));
       setActiveInput(0);
       inputRefs.current[0]?.focus();
-
-      // Reset timer
       setResendTimer(30);
       setIsResendDisabled(true);
-
-      // Add your resend logic here
       console.log("Resending verification code to:", email);
     }
   };
@@ -95,12 +86,15 @@ React.useEffect(() => {
     e.preventDefault();
     const verificationCode = code.join("");
     if (verificationCode.length === 4) {
-      // Add your verification logic here
       console.log("Verifying code:", verificationCode);
-      // Redirect to reset password page
       router.push("/forgot-password/reset");
     }
   };
+
+  // Show loading state while email is being set
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-[#000314]">
