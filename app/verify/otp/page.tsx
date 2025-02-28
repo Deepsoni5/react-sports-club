@@ -1,5 +1,5 @@
 "use client";
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // Disable prerendering
 
 import * as React from "react";
 import Image from "next/image";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { cn } from "@/lib/utils";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useOtpMobileVerifyMutation } from "@/features/auth/services/authRTKs";
 
 export default function OTPVerificationPage() {
@@ -16,26 +16,23 @@ export default function OTPVerificationPage() {
   const [resendTimer, setResendTimer] = React.useState(30);
   const [isResendDisabled, setIsResendDisabled] = React.useState(true);
   const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const [phoneNumber, setPhoneNumber] = React.useState("+91 0000 0000 00");
+  const [isLoading, setIsLoading] = React.useState(true); // Add loading state
 
-  // Get the phone number from search params and trim extra spaces
- const [phoneNumber, setPhoneNumber] = React.useState("+91 0000 0000 00");
-
-React.useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  let phone = params.get("phone")?.trim();
-  if (phone && !phone.startsWith("+")) {
-    phone = `+${phone}`;
-  }
-  setPhoneNumber(phone || "+91 0000 0000 00");
-}, []);
-
-  // If it doesn't start with "+", prepend it (this won't add an extra space)
-  
+  // Move `useSearchParams` logic inside `useEffect`
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    let phone = params.get("phone")?.trim();
+    if (phone && !phone.startsWith("+")) {
+      phone = `+${phone}`;
+    }
+    setPhoneNumber(phone || "+91 0000 0000 00");
+    setIsLoading(false); // Set loading to false after phone number is set
+  }, []);
 
   // Using the OTP verification mutation hook
-  const [otpVerify, { isLoading, isError, error }] =
+  const [otpVerify, { isLoading: isVerifying, isError, error }] =
     useOtpMobileVerifyMutation();
 
   React.useEffect(() => {
@@ -123,6 +120,11 @@ React.useEffect(() => {
       }
     }
   };
+
+  // Show loading state while phone number is being set
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-[#000314]">
@@ -214,9 +216,9 @@ React.useEffect(() => {
               <Button
                 type="submit"
                 className="w-full bg-[#1032B9] hover:bg-[#1032B9]/80 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
-                disabled={otp.some((digit) => !digit) || isLoading}
+                disabled={otp.some((digit) => !digit) || isVerifying}
               >
-                {isLoading ? "Verifying..." : "Submit"}
+                {isVerifying ? "Verifying..." : "Submit"}
               </Button>
             </form>
           </div>
